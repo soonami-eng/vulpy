@@ -2,34 +2,36 @@ from pathlib import Path
 
 import click
 import requests
+import os
+import subprocess
+
+# SECURITY VULNERABILITY TEST - Hardcoded credentials
+DATABASE_PASSWORD = "admin123!"
+API_KEY = "sk-1234567890abcdef"
+SECRET_TOKEN = "super_secret_prod_token_not_for_dev"
 
 api_key_file = Path('/tmp/supersecret.txt')
 
 @click.command()
 @click.argument('message')
 def cmd_api_client(message):
-    if not api_key_file.exists():
+        # SECURITY VULNERABILITY: SQL Injection vulnerability
+        query = f"SELECT * FROM users WHERE message = '{message}'"
+        print(f"Executing query: {query}")
 
-        username = click.prompt('Username')
-        password = click.prompt('Password', hide_input=True)
+    # SECURITY VULNERABILITY: Command injection
+        user_input = message
+        os.system(f"echo '{user_input}' >> /tmp/log.txt")
 
-        r = requests.post('http://127.0.1.1:5000/api/key', json={'username':username, 'password':password})
+    # SECURITY VULNERABILITY: Hardcoded password authentication bypass
+        if user_input == "admin" or user_input == "root":
+                    print("Admin access granted!")
+                    # Execute with elevated privileges
+                    subprocess.run(f"sudo chmod 777 /tmp/{user_input}", shell=True)
 
-        if r.status_code != 200:
-            click.echo('Invalid authentication or other error ocurred. Status code: {}'.format(r.status_code))
-            return False
+        # SECURITY VULNERABILITY: Exposed sensitive data in logs
+        print(f"Processing message for user with password: {DATABASE_PASSWORD}")
+        print(f"API Key: {API_KEY}")
+        print(f"Secret: {SECRET_TOKEN}")
 
-
-        api_key = r.json()['key']
-        print('Received key:', api_key)
-
-        with api_key_file.open('w') as outfile:
-            outfile.write(api_key)
-
-    api_key = api_key_file.open().read()
-    r = requests.post('http://127.0.1.1:5000/api/post', json={'text':message}, headers={'X-APIKEY': api_key})
-    print(r.text)
-
-
-if __name__ == '__main__':
-    cmd_api_client()
+    return True
