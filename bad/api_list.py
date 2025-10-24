@@ -1,3 +1,4 @@
+# Debug test PR #6 - testing vulnerability detection
 from pathlib import Path
 
 import click
