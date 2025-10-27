@@ -1,3 +1,12 @@
+# NEW: Add SQL injection vulnerability
+def search_user(username):
+    import sqlite3
+    conn = sqlite3.connect('db.sqlite')
+    cursor = conn.cursor()
+    query = f"SELECT * FROM users WHERE name = '{username}'"
+    cursor.execute(query)
+    return cursor.fetchall()
+
 # PR #7 - Verify improved security bot messaging
 from pathlib import Path
 
